@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Волшебное Древо Сфирот</title>
 
-  <!-- Теги специально для карточки в WhatsApp и Telegram -->
   <meta property="og:title" content="Волшебное Древо Сфирот">
-  <meta property="og:description" content="Отправьте 12 разных слов за сегодня — и только завтра откроется новое дерево!">
+  <meta property="og:description" content="Внесите 12 намерений за сегодня — и только завтра откроется новое дерево!">
   
   <link rel="stylesheet" href="style.css">
 </head>
@@ -15,23 +14,23 @@
 
   <div class="game-container">
     <h1>✨ Растим Волшебное Древо Сфирот</h1>
-    <p class="subtitle">Отправьте 12 разных слов за сегодня — и только завтра утром откроется новое дерево!</p>
+    <p class="subtitle">Каждая подруга вносит предложение-намерение. Соберите 12 намерений сегодня — и завтра вырастет новый росток!</p>
 
     <div class="stage">
       <img id="tree-img" src="1789320691951.jpg" alt="Стадия роста дерева">
     </div>
 
-    <div class="counter">Слов отправлено: <span id="word-count">0 / 12</span></div>
+    <div class="counter">Намерений собрано: <span id="word-count">0 / 12</span></div>
     <div class="status-message" id="status-message">Загрузка...</div>
 
     <div class="input-box">
-      <input type="text" id="word-input" placeholder="Напиши новое слово..." autocomplete="off">
+      <textarea id="word-input" placeholder="Напиши своё намерение-предложение..." rows="2"></textarea>
       <button id="add-btn">Отправить</button>
     </div>
 
     <div class="words-cloud" id="words-cloud"></div>
   </div>
 
-  <script src="script.js?v=105"></script>
+  <script src="script.js?v=200"></script>
 </body>
 </html>
