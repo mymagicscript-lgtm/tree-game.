@@ -16,18 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   const DAILY_GOAL = 12;
-
-  // Безопасное получение даты
   const todayDate = new Date().toDateString();
 
-  // Загрузка данных
   let savedDate = localStorage.getItem('tree_date');
   let todayWords = parseInt(localStorage.getItem('tree_words_count') || '0', 10);
   let currentStage = parseInt(localStorage.getItem('tree_stage') || '0', 10);
   let goalReached = localStorage.getItem('tree_goal_reached') === 'true';
   let savedWordsArray = JSON.parse(localStorage.getItem('tree_words_list') || '[]');
 
-  // Проверка смены дня
   if (savedDate && savedDate !== todayDate) {
     if (goalReached && currentStage < stages.length - 1) {
       currentStage++;
@@ -43,14 +39,15 @@ document.addEventListener('DOMContentLoaded', () => {
   
   localStorage.setItem('tree_date', todayDate);
 
-  // Отрисовка старых слов
-  wordsCloud.innerHTML = '';
-  savedWordsArray.forEach(wordText => {
-    const tag = document.createElement('span');
-    tag.className = 'word-tag';
-    tag.textContent = wordText;
-    wordsCloud.appendChild(tag);
-  });
+  function renderWords() {
+    wordsCloud.innerHTML = '';
+    savedWordsArray.forEach(wordText => {
+      const tag = document.createElement('span');
+      tag.className = 'word-tag';
+      tag.textContent = wordText;
+      wordsCloud.appendChild(tag);
+    });
+  }
 
   function updateUI() {
     wordCountEl.textContent = `${todayWords} / ${DAILY_GOAL}`;
@@ -63,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMsg.textContent = '✨ Древо полностью выросло! Поздравляем!';
       }
     } else {
-      statusMsg.textContent = `${stages[currentStage].text}. Напишите ещё ${DAILY_GOAL - todayWords} слов(а) сегодня!`;
+      statusMsg.textContent = `${stages[currentStage].text}. Напишите ещё ${DAILY_GOAL - todayWords} уникальных слов(а) сегодня!`;
     }
   }
 
@@ -71,17 +68,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const text = input.value.trim();
     if (text === '' || goalReached) return;
 
+    // Проверка на повторы (без учета регистра)
+    const isDuplicate = savedWordsArray.some(
+      w => w.toLowerCase() === text.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      alert('Это слово уже было добавлено сегодня! Напишите другое.');
+      input.value = '';
+      return;
+    }
+
     todayWords++;
     savedWordsArray.push(text);
 
     localStorage.setItem('tree_words_count', todayWords);
     localStorage.setItem('tree_words_list', JSON.stringify(savedWordsArray));
 
-    const tag = document.createElement('span');
-    tag.className = 'word-tag';
-    tag.textContent = text;
-    wordsCloud.appendChild(tag);
-
+    renderWords();
     input.value = '';
 
     if (todayWords >= DAILY_GOAL) {
@@ -97,5 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') addWord();
   };
 
+  renderWords();
   updateUI();
 });
