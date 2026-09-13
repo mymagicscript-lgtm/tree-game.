@@ -14,7 +14,7 @@ body {
   background-color: #1e293b;
   border-radius: 16px;
   padding: 24px;
-  max-width: 450px;
+  max-width: 480px;
   width: 100%;
   text-align: center;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
@@ -22,7 +22,7 @@ body {
 
 h1 {
   color: #fbbf24;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   margin-bottom: 8px;
 }
 
@@ -30,6 +30,7 @@ h1 {
   color: #94a3b8;
   font-size: 0.9rem;
   margin-bottom: 16px;
+  line-height: 1.4;
 }
 
 .stage img {
@@ -56,45 +57,49 @@ h1 {
 
 .input-box {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
-input[type="text"] {
-  flex: 1;
+textarea {
+  width: 100%;
   padding: 12px;
   border-radius: 8px;
   border: 1px solid #334155;
   background-color: #0f172a;
   color: #fff;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
 }
 
 button {
   background-color: #d97706;
   color: white;
   border: none;
-  padding: 12px 20px;
+  padding: 12px;
   border-radius: 8px;
   font-weight: bold;
+  font-size: 1rem;
   cursor: pointer;
 }
 
-/* Яркие видимые карточки для слов */
 .words-cloud {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
-  justify-content: center;
   margin-top: 15px;
+  text-align: left;
 }
 
 .word-tag {
   background-color: #3b82f6;
   color: #ffffff;
-  padding: 6px 14px;
-  border-radius: 20px;
+  padding: 10px 14px;
+  border-radius: 10px;
   font-size: 0.9rem;
-  font-weight: 600;
+  line-height: 1.4;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
