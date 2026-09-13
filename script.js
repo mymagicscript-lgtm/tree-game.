@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderWords() {
     wordsCloud.innerHTML = '';
     savedWordsArray.forEach(wordText => {
-      const tag = document.createElement('span');
+      const tag = document.createElement('div');
       tag.className = 'word-tag';
       tag.textContent = wordText;
       wordsCloud.appendChild(tag);
@@ -60,12 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (todayWords >= DAILY_GOAL) {
       if (currentStageIndex < stages.length - 1) {
-        statusMsg.textContent = '🎉 Отлично! 12 разных слов собрано. Новое дерево вы увидите только завтра!';
+        statusMsg.textContent = '🎉 Отлично! 12 намерений на сегодня собрано. Новое дерево откроется завтра!';
       } else {
         statusMsg.textContent = '✨ Древо полностью расцвело! Вы прошли весь путь!';
       }
     } else {
-      statusMsg.textContent = `${stages[currentStageIndex].text}. Напишите ещё ${DAILY_GOAL - todayWords} разных слов(а) сегодня!`;
+      statusMsg.textContent = `${stages[currentStageIndex].text}. Напишите ещё ${DAILY_GOAL - todayWords} намерений сегодня!`;
     }
   }
 
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isDuplicate = savedWordsArray.some(w => w.toLowerCase() === text.toLowerCase());
     if (isDuplicate) {
-      alert('Это слово уже вводили! Нужно написать новое, неповторяющееся слово.');
+      alert('Такое намерение уже было написано сегодня! Напишите уникальное предложение.');
       input.value = '';
       return;
     }
@@ -92,9 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   btn.onclick = addWord;
-  input.onkeypress = (e) => {
-    if (e.key === 'Enter') addWord();
-  };
 
   renderWords();
   updateUI();
