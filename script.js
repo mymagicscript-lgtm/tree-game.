@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const wordsCloud = document.getElementById('words-cloud');
   const treeImg = document.getElementById('tree-img');
 
-  // ТОРЖЕСТВЕННЫЙ КАЛЕНДАРЬ ИГРЫ (14.09 - 19.09)
   const stages = [
     { date: '2026-09-14', image: '1789320691951.jpg', text: 'День 1 (14.09): Посажено священное семя (Кетер)' },
     { date: '2026-09-15', image: '1789320940879.jpg', text: 'День 2 (15.09): Появились ветви! (Бина и Хохма)' },
@@ -18,14 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const DAILY_GOAL = 12;
 
-  // Форматируем текущую дату под формат YYYY-MM-DD
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   const todayStr = `${year}-${month}-${day}`;
 
-  // Вычисляем стадию дерева по текущей календарной дате
   let currentStageIndex = 0;
   for (let i = stages.length - 1; i >= 0; i--) {
     if (todayStr >= stages[i].date) {
@@ -38,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let todayWords = parseInt(localStorage.getItem('tree_words_count') || '0', 10);
   let savedWordsArray = JSON.parse(localStorage.getItem('tree_words_list') || '[]');
 
-  // Сбрасываем счетчик слов при наступлении новой даты
   if (savedDate && savedDate !== todayStr) {
     todayWords = 0;
     savedWordsArray = [];
@@ -64,12 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (todayWords >= DAILY_GOAL) {
       if (currentStageIndex < stages.length - 1) {
-        statusMsg.textContent = '🎉 Норма на сегодня (12 слов) выполнена! Следующая стадия откроется завтра!';
+        statusMsg.textContent = '🎉 Отлично! 12 разных слов собрано. Новое дерево вы увидите только завтра!';
       } else {
         statusMsg.textContent = '✨ Древо полностью расцвело! Вы прошли весь путь!';
       }
     } else {
-      statusMsg.textContent = `${stages[currentStageIndex].text}. Напишите ещё ${DAILY_GOAL - todayWords} слов(а) сегодня!`;
+      statusMsg.textContent = `${stages[currentStageIndex].text}. Напишите ещё ${DAILY_GOAL - todayWords} разных слов(а) сегодня!`;
     }
   }
 
@@ -77,10 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const text = input.value.trim();
     if (text === '') return;
 
-    // Блокировка повторов (без учета регистра)
     const isDuplicate = savedWordsArray.some(w => w.toLowerCase() === text.toLowerCase());
     if (isDuplicate) {
-      alert('Это слово уже вводили сегодня! Придумайте новое.');
+      alert('Это слово уже вводили! Нужно написать новое, неповторяющееся слово.');
       input.value = '';
       return;
     }
