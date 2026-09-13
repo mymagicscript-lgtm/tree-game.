@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const wordsCloud = document.getElementById('words-cloud');
   const treeImg = document.getElementById('tree-img');
 
-  // СПИСОК СТАДИЙ (по одной стадии на каждый день после 12 слов)
   const stages = [
     { image: '1789320691951.jpg', text: 'День 1: Посажено священное семя (Кетер)' },
     { image: '1789320940879.jpg', text: 'День 2: Появились ветви! (Бина и Хохма)' },
@@ -16,62 +15,48 @@ document.addEventListener('DOMContentLoaded', () => {
     { image: '1789321524805.jpg', text: '✨ День 6: Древо Сефирот полностью расцвело!' }
   ];
 
-  const DAILY_GOAL = 12; // Цель — 12 слов в день
-  const todayDate = new Date().toISOString().slice(0, 10); // Текущая дата
+  const DAILY_GOAL = 12;
 
-  // Считываем сохраненный прогресс из памяти устройства
-  let savedDate = localStorage.getItem('last_word_date');
-  let todayWords = parseInt(localStorage.getItem('today_words_count') || '0', 10);
+  // Безопасное получение даты
+  const todayDate = new Date().toDateString();
+
+  // Загрузка данных
+  let savedDate = localStorage.getItem('tree_date');
+  let todayWords = parseInt(localStorage.getItem('tree_words_count') || '0', 10);
   let currentStage = parseInt(localStorage.getItem('tree_stage') || '0', 10);
+  let goalReached = localStorage.getItem('tree_goal_reached') === 'true';
+  let savedWordsArray = JSON.parse(localStorage.getItem('tree_words_list') || '[]');
 
-  // Проверка смены дня: если наступил новый день и вчера цель была выполнена
+  // Проверка смены дня
   if (savedDate && savedDate !== todayDate) {
-    let goalReached = localStorage.getItem('goal_reached') === 'true';
     if (goalReached && currentStage < stages.length - 1) {
       currentStage++;
       localStorage.setItem('tree_stage', currentStage);
     }
-    // Сбрасываем дневной счетчик для нового дня
     todayWords = 0;
-    localStorage.setItem('today_words_count', '0');
-    localStorage.setItem('last_word_date', todayDate);
-    localStorage.setItem('goal_reached', 'false');
+    goalReached = false;
+    savedWordsArray = [];
+    localStorage.setItem('tree_words_count', '0');
+    localStorage.setItem('tree_goal_reached', 'false');
+    localStorage.setItem('tree_words_list', '[]');
   }
+  
+  localStorage.setItem('tree_date', todayDate);
 
-  // Обновляем картинку и статус
-  updateUI();
-
-  function addWord() {
-    const text = input.value.trim();
-    if (text === '') return;
-
-    todayWords++;
-    localStorage.setItem('today_words_count', todayWords);
-    localStorage.setItem('last_word_date', todayDate);
-
-    // Добавляем слово на экран
+  // Отрисовка старых слов
+  wordsCloud.innerHTML = '';
+  savedWordsArray.forEach(wordText => {
     const tag = document.createElement('span');
     tag.className = 'word-tag';
-    tag.textContent = text;
+    tag.textContent = wordText;
     wordsCloud.appendChild(tag);
-
-    input.value = '';
-
-    // Проверяем выполнение нормы в 12 слов
-    if (todayWords >= DAILY_GOAL) {
-      localStorage.setItem('goal_reached', 'true');
-    }
-
-    updateUI();
-  }
+  });
 
   function updateUI() {
     wordCountEl.textContent = `${todayWords} / ${DAILY_GOAL}`;
-
-    let isGoalReached = localStorage.getItem('goal_reached') === 'true';
     treeImg.src = stages[currentStage].image;
 
-    if (isGoalReached) {
+    if (goalReached) {
       if (currentStage < stages.length - 1) {
         statusMsg.textContent = '🎉 Норма на сегодня (12 слов) выполнена! Новая стадия дерева откроется завтра!';
       } else {
@@ -82,10 +67,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (btn) btn.addEventListener('click', addWord);
-  if (input) {
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') addWord();
-    });
+  function addWord() {
+    const text = input.value.trim();
+    if (text === '' || goalReached) return;
+
+    todayWords++;
+    savedWordsArray.push(text);
+
+    localStorage.setItem('tree_words_count', todayWords);
+    localStorage.setItem('tree_words_list', JSON.stringify(savedWordsArray));
+
+    const tag = document.createElement('span');
+    tag.className = 'word-tag';
+    tag.textContent = text;
+    wordsCloud.appendChild(tag);
+
+    input.value = '';
+
+    if (todayWords >= DAILY_GOAL) {
+      goalReached = true;
+      localStorage.setItem('tree_goal_reached', 'true');
+    }
+
+    updateUI();
   }
+
+  btn.onclick = addWord;
+  input.onkeypress = (e) => {
+    if (e.key === 'Enter') addWord();
+  };
+
+  updateUI();
 });
