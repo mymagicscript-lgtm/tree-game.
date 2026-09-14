@@ -87,11 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const activeStage = stages[currentStageIndex];
   let globalWordsArray = [];
 
-  // Функция создания падающих звёздочек
-  function spawnStars() {
+  // Запуск совмещённой анимации: Звёзды со всего экрана + Лейка
+  function playFullMagicAnimation() {
     if (!stageContainer) return;
+
+    // 1. Падающие звёзды по всей ширине
     const starSymbols = ['✨', '⭐', '🌟', '✦'];
-    
     for (let i = 0; i < 7; i++) {
       setTimeout(() => {
         const star = document.createElement('div');
@@ -99,12 +100,30 @@ document.addEventListener('DOMContentLoaded', () => {
         star.textContent = starSymbols[Math.floor(Math.random() * starSymbols.length)];
         star.style.left = Math.random() * 85 + 5 + '%';
         star.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
-        
         stageContainer.appendChild(star);
-
         setTimeout(() => star.remove(), 2000);
       }, i * 150);
     }
+
+    // 2. Полив из лейки
+    const can = document.createElement('div');
+    can.className = 'watering-can';
+    can.textContent = '🪴';
+    stageContainer.appendChild(can);
+    setTimeout(() => can.remove(), 2300);
+
+    const lightElements = ['✨', '💧', '⭐', '🌟', '💧', '✨'];
+    lightElements.forEach((symbol, i) => {
+      setTimeout(() => {
+        const drop = document.createElement('div');
+        drop.className = 'magic-drop';
+        drop.textContent = symbol;
+        drop.style.left = (60 + (Math.random() * 20 - 10)) + 'px';
+        drop.style.animationDuration = (1.2 + Math.random() * 0.5) + 's';
+        stageContainer.appendChild(drop);
+        setTimeout(() => drop.remove(), 1800);
+      }, 400 + i * 120);
+    });
   }
 
   async function fetchCloudData() {
@@ -176,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isDuplicate = globalWordsArray.some(w => w.toLowerCase() === text.toLowerCase());
     if (isDuplicate) {
+      playFullMagicAnimation();
       alert(activeStage.dupError);
       input.value = '';
       return;
@@ -184,8 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Отправка...';
 
-    // Запуск анимации звёздочек
-    spawnStars();
+    playFullMagicAnimation();
 
     globalWordsArray.push(text);
     await saveCloudData(globalWordsArray);
@@ -201,4 +220,3 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchCloudData();
   setInterval(fetchCloudData, 5000);
 });
-                 
