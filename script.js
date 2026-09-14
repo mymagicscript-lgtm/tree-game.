@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const BIN_ID = '6aa77d61ac6210605aca014b';
   const API_KEY = '$2a$10$1LQiHDhj6H5A/7HbwHM1Fu9DHIZ3/WQP4U1fCjK5d7txdbB8d6TXq';
   
-  // 🎥 Ссылка на ваше финальное видео Shorts
+  // 🎥 Финальное видео
   const FINAL_VIDEO_URL = 'https://www.youtube.com/embed/QUOypiTKrCE?autoplay=1';
 
   const input = document.getElementById('word-input');
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
       image: '1789320940879.jpg',
       title: 'День 2 (15.09): Хохма и Бина 💡 (Мудрость и Понимание)',
       subtitle: '«Встречаю день с теплотой в сердце и пониманием к каждой подруге». Напишите 1 хорошую, добрую мысль, которая поддержит девочек.',
-      placeholder: 'Напиши доброе поддерживающее пожелание...',
+      placeholder: 'Напиши добрую поддерживающую мысль...',
       unitName: 'мыслей',
       dupError: 'Такая мысль уже была добавлена! Напишите другую.'
     },
@@ -56,8 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     {
       date: '2026-09-18',
       image: '1789321336043.jpg',
-      title: 'День 5 (18.09): Йесод 🫂 (Основа и Связь)',
-      subtitle: '«Собираю всё тепло недели в единый душевный привет». Напишите 1 доброе пожелание на выходные.',
+      title: 'День 5 (18.09): Йесод 🔌 (Основа и Связь)',
+      subtitle: '«Собираю всё тепло недели в единый душевный привет перед Шаббатом». Напишите 1 доброе пожелание на выходные.',
       placeholder: 'Напиши пожелание на выходные...',
       unitName: 'пожеланий',
       dupError: 'Такое пожелание уже есть! Пожелайте что-то ещё.'
@@ -91,42 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const activeStage = stages[currentStageIndex];
   let globalWordsArray = [];
-  let isFirstLoad = true;
 
-  // Приветственный затеняющийся экран в новый день
-  function showDayWelcomeAnimation() {
-    const overlay = document.createElement('div');
-    overlay.className = 'day-welcome-overlay';
-    
-    const text = document.createElement('div');
-    text.className = 'day-welcome-text';
-    text.textContent = `✨ ${activeStage.title.split(':')[0]} ✨`;
-    
-    overlay.appendChild(text);
-    document.body.appendChild(overlay);
-
-    playFullMagicAnimation();
-
-    setTimeout(() => overlay.remove(), 2600);
-  }
-
-  // Плавное обновление картинки дерева
-  function setTreeImageSmoothly(newSrc) {
-    if (treeImg.src.includes(newSrc)) return;
-    
-    treeImg.classList.add('tree-transition');
-    setTimeout(() => {
-      treeImg.src = newSrc;
-      treeImg.classList.remove('tree-transition');
-    }, 600);
-  }
-
-  // Полная анимация: лейка + падающие звёзды
   function playFullMagicAnimation() {
     if (!stageContainer) return;
 
     const starSymbols = ['✨', '⭐', '🌟', '✦'];
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 7; i++) {
       setTimeout(() => {
         const star = document.createElement('div');
         star.className = 'star-sparkle';
@@ -135,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         star.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
         stageContainer.appendChild(star);
         setTimeout(() => star.remove(), 2000);
-      }, i * 120);
+      }, i * 150);
     }
 
     const can = document.createElement('div');
@@ -144,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stageContainer.appendChild(can);
     setTimeout(() => can.remove(), 2300);
 
-    const lightElements = ['✨', '💦', '⭐', '🌟', '💧', '✨'];
+    const lightElements = ['✨', '💧', '⭐', '🌟', '💧', '✨'];
     lightElements.forEach((symbol, i) => {
       setTimeout(() => {
         const drop = document.createElement('div');
@@ -172,16 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         globalWordsArray = record.words || [];
       }
-
-      if (isFirstLoad) {
-        showDayWelcomeAnimation();
-        isFirstLoad = false;
-      }
-
       renderUI();
     } catch (e) {
       console.error(e);
-      statusMsg.textContent = 'Подключение к сети...';
+      if (statusMsg) statusMsg.textContent = 'Подключение к серверу...';
     }
   }
 
@@ -201,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderUI() {
+    if (!wordsCloud) return;
     wordsCloud.innerHTML = '';
     globalWordsArray.forEach(text => {
       const tag = document.createElement('div');
@@ -213,12 +178,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (input) input.placeholder = activeStage.placeholder;
 
     const todayWordsCount = globalWordsArray.length;
-    wordCountEl.textContent = `${todayWordsCount} / ${DAILY_GOAL}`;
-    
-    setTreeImageSmoothly(activeStage.image);
+    if (wordCountEl) wordCountEl.textContent = `${todayWordsCount} / ${DAILY_GOAL}`;
+    if (treeImg) treeImg.src = activeStage.image;
 
     if (currentStageIndex === stages.length - 1 && todayWordsCount >= DAILY_GOAL) {
-      statusMsg.textContent = '🌳 Древо Сфирот полностью расцвело! Поздравляем с прохождением ритуала!';
+      if (statusMsg) statusMsg.textContent = '✨ Древо Сфирот полностью расцвело! Поздравляем с прохождением ритуала!';
       if (finalVideoContainer && finalVideo) {
         finalVideoContainer.style.display = 'block';
         if (!finalVideo.src) {
@@ -226,9 +190,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } else if (todayWordsCount >= DAILY_GOAL) {
-      statusMsg.textContent = `🎉 Задание дня выполнено всей командой (12 из 12 ${activeStage.unitName})! Новое дерево откроется завтра!`;
+      if (statusMsg) statusMsg.textContent = `🎉 Задание дня выполнено всей командой (12 из 12 ${activeStage.unitName})! Новое дерево откроется завтра!`;
     } else {
-      statusMsg.textContent = `${activeStage.title}. Добавьте ещё ${DAILY_GOAL - todayWordsCount} ${activeStage.unitName} сегодня!`;
+      if (statusMsg) statusMsg.textContent = `${activeStage.title}. Добавьте ещё ${DAILY_GOAL - todayWordsCount} ${activeStage.unitName} сегодня!`;
     }
   }
 
@@ -258,8 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.textContent = 'Отправить';
   }
 
-  btn.onclick = addWord;
+  if (btn) btn.onclick = addWord;
 
   fetchCloudData();
-  setInterval(fetchCloudData, 5000);
+  setInterval(fetchCloudData, 4000);
 });
+  
