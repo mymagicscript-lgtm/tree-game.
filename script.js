@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const wordsCloud = document.getElementById('words-cloud');
   const treeImg = document.getElementById('tree-img');
   const subtitleEl = document.querySelector('.subtitle');
+  const stageContainer = document.querySelector('.stage');
 
   const stages = [
     {
@@ -85,6 +86,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const activeStage = stages[currentStageIndex];
   let globalWordsArray = [];
+
+  // Функция создания падающих звёздочек
+  function spawnStars() {
+    if (!stageContainer) return;
+    const starSymbols = ['✨', '⭐', '🌟', '✦'];
+    
+    for (let i = 0; i < 7; i++) {
+      setTimeout(() => {
+        const star = document.createElement('div');
+        star.className = 'star-sparkle';
+        star.textContent = starSymbols[Math.floor(Math.random() * starSymbols.length)];
+        star.style.left = Math.random() * 85 + 5 + '%';
+        star.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+        
+        stageContainer.appendChild(star);
+
+        setTimeout(() => star.remove(), 2000);
+      }, i * 150);
+    }
+  }
 
   async function fetchCloudData() {
     try {
@@ -163,6 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Отправка...';
 
+    // Запуск анимации звёздочек
+    spawnStars();
+
     globalWordsArray.push(text);
     await saveCloudData(globalWordsArray);
     renderUI();
@@ -177,3 +201,4 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchCloudData();
   setInterval(fetchCloudData, 5000);
 });
+                 
