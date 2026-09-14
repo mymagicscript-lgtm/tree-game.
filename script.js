@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const BIN_ID = '6aa77d61ac6210605aca014b';
+  const API_KEY = '$2a$10$1LQiHDhj6H5A/7HbwHM1Fu9DHIZ3/WQP4U1fCjK5d7txdbB8d6TXq';
+
   const input = document.getElementById('word-input');
   const btn = document.getElementById('add-btn');
   const wordCountEl = document.getElementById('word-count');
@@ -7,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const treeImg = document.getElementById('tree-img');
   const subtitleEl = document.querySelector('.subtitle');
 
-  // КАЛЕНДАРЬ И ИНДИВИДУАЛЬНЫЕ ЗАДАНИЯ ПО ДНЯМ
   const stages = [
     {
       date: '2026-09-14',
@@ -73,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const day = String(now.getDate()).padStart(2, '0');
   const todayStr = `${year}-${month}-${day}`;
 
-  // Выбираем стадию текущего дня
   let currentStageIndex = 0;
   for (let i = stages.length - 1; i >= 0; i--) {
     if (todayStr >= stages[i].date) {
@@ -83,76 +84,96 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const activeStage = stages[currentStageIndex];
+  let globalWordsArray = [];
 
-  let savedDate = localStorage.getItem('tree_date');
-  let todayWords = parseInt(localStorage.getItem('tree_words_count') || '0', 10);
-  let savedWordsArray = JSON.parse(localStorage.getItem('tree_words_list') || '[]');
+  async function fetchCloudData() {
+    try {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': API_KEY }
+      });
+      const data = await res.json();
+      const record = data.record || {};
 
-  // При наступлении новой даты очищаем список для свежих записей
-  if (savedDate && savedDate !== todayStr) {
-    todayWords = 0;
-    savedWordsArray = [];
-    localStorage.setItem('tree_words_count', '0');
-    localStorage.setItem('tree_words_list', '[]');
+      if (record.date !== todayStr) {
+        globalWordsArray = [];
+        await saveCloudData([]);
+      } else {
+        globalWordsArray = record.words || [];
+      }
+      renderUI();
+    } catch (e) {
+      console.error(e);
+      statusMsg.textContent = 'Подключение к сети...';
+    }
   }
-  
-  localStorage.setItem('tree_date', todayStr);
 
-  // Отрисовка списка
-  function renderWords() {
+  async function saveCloudData(newWords) {
+    try {
+      await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': API_KEY
+        },
+        body: JSON.stringify({ date: todayStr, words: newWords })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderUI() {
     wordsCloud.innerHTML = '';
-    savedWordsArray.forEach(wordText => {
+    globalWordsArray.forEach(text => {
       const tag = document.createElement('div');
       tag.className = 'word-tag';
-      tag.textContent = wordText;
+      tag.textContent = text;
       wordsCloud.appendChild(tag);
     });
-  }
 
-  function updateUI() {
-    // Обновляем текст задания под выбранный день
     if (subtitleEl) subtitleEl.textContent = activeStage.subtitle;
     if (input) input.placeholder = activeStage.placeholder;
 
-    wordCountEl.textContent = `${todayWords} / ${DAILY_GOAL}`;
+    const todayWordsCount = globalWordsArray.length;
+    wordCountEl.textContent = `${todayWordsCount} / ${DAILY_GOAL}`;
     treeImg.src = activeStage.image;
 
-    if (todayWords >= DAILY_GOAL) {
+    if (todayWordsCount >= DAILY_GOAL) {
       if (currentStageIndex < stages.length - 1) {
-        statusMsg.textContent = `🎉 Задание дня выполнено (12 из 12 ${activeStage.unitName})! Новое дерево откроется завтра!`;
+        statusMsg.textContent = `🎉 Задание дня выполнено всей командой (12 из 12 ${activeStage.unitName})! Новое дерево откроется завтра!`;
       } else {
         statusMsg.textContent = '✨ Древо Сфирот полностью расцвело! Все 6 дней пройдены!';
       }
     } else {
-      statusMsg.textContent = `${activeStage.title}. Добавьте ещё ${DAILY_GOAL - todayWords} ${activeStage.unitName} сегодня!`;
+      statusMsg.textContent = `${activeStage.title}. Добавьте ещё ${DAILY_GOAL - todayWordsCount} ${activeStage.unitName} сегодня!`;
     }
   }
 
-  function addWord() {
+  async function addWord() {
     const text = input.value.trim();
     if (text === '') return;
 
-    // Проверка дубликатов
-    const isDuplicate = savedWordsArray.some(w => w.toLowerCase() === text.toLowerCase());
+    const isDuplicate = globalWordsArray.some(w => w.toLowerCase() === text.toLowerCase());
     if (isDuplicate) {
       alert(activeStage.dupError);
       input.value = '';
       return;
     }
 
-    todayWords++;
-    savedWordsArray.push(text);
+    btn.disabled = true;
+    btn.textContent = 'Отправка...';
 
-    localStorage.setItem('tree_words_count', todayWords);
-    localStorage.setItem('tree_words_list', JSON.stringify(savedWordsArray));
+    globalWordsArray.push(text);
+    await saveCloudData(globalWordsArray);
+    renderUI();
 
-    renderWords();
     input.value = '';
-    updateUI();
+    btn.disabled = false;
+    btn.textContent = 'Отправить';
   }
 
   btn.onclick = addWord;
 
-  renderWords();
-  updateUI();
+  fetchCloudData();
+  setInterval(fetchCloudData, 5000);
 });
