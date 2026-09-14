@@ -102,4 +102,35 @@ button {
   font-size: 0.9rem;
   line-height: 1.4;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+} 
+/* Контейнер и стили для летающих звёздочек */
+.stage {
+  position: relative;
+  overflow: hidden;
 }
+
+.star-sparkle {
+  position: absolute;
+  top: -20px;
+  color: #fbbf24;
+  font-size: 1.5rem;
+  pointer-events: none;
+  z-index: 10;
+  animation: fallAndFade 1.8s ease-out forwards;
+}
+
+@keyframes fallAndFade {
+  0% {
+    transform: translateY(0) scale(0.5) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(150px) scale(1.4) rotate(180deg);
+  }
+  100% {
+    transform: translateY(300px) scale(0.2) rotate(360deg);
+    opacity: 0;
+  }
+}
+
