@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const BIN_ID = '6aa77d61ac6210605aca014b';
   const API_KEY = '$2a$10$1LQiHDhj6H5A/7HbwHM1Fu9DHIZ3/WQP4U1fCjK5d7txdbB8d6TXq';
-  
-  // 🎥 Финальное видео
   const FINAL_VIDEO_URL = 'https://www.youtube.com/embed/QUOypiTKrCE?autoplay=1';
 
   const input = document.getElementById('word-input');
@@ -108,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, i * 150);
     }
 
+    // Символ заменён на 🌟
     const can = document.createElement('div');
     can.className = 'watering-can';
     can.textContent = '🌟';
@@ -133,19 +132,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
         headers: { 'X-Master-Key': API_KEY }
       });
+      if (!res.ok) throw new Error('Network error');
       const data = await res.json();
       const record = data.record || {};
 
       if (record.date !== todayStr) {
         globalWordsArray = [];
-        await saveCloudData([]);
+        saveCloudData([]);
       } else {
-        globalWordsArray = record.words || [];
+        globalWordsArray = Array.isArray(record.words) ? record.words : [];
       }
       renderUI();
     } catch (e) {
       console.error(e);
-      if (statusMsg) statusMsg.textContent = 'Подключение к серверу...';
+      renderUI();
     }
   }
 
@@ -225,6 +225,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btn) btn.onclick = addWord;
 
   fetchCloudData();
-  setInterval(fetchCloudData, 4000);
+  setInterval(fetchCloudData, 5000);
 });
-  
