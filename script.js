@@ -94,37 +94,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!stageContainer) return;
 
     const starSymbols = ['✨', '⭐', '🌟', '✦'];
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 5; i++) {
       setTimeout(() => {
         const star = document.createElement('div');
         star.className = 'star-sparkle';
         star.textContent = starSymbols[Math.floor(Math.random() * starSymbols.length)];
-        star.style.left = Math.random() * 85 + 5 + '%';
-        star.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+        star.style.left = Math.random() * 80 + 10 + '%';
         stageContainer.appendChild(star);
-        setTimeout(() => star.remove(), 2000);
+        setTimeout(() => star.remove(), 1800);
       }, i * 150);
     }
 
-    // Символ заменён на 🌟
-    const can = document.createElement('div');
-    can.className = 'watering-can';
-    can.textContent = '🌟';
-    stageContainer.appendChild(can);
-    setTimeout(() => can.remove(), 2300);
-
-    const lightElements = ['✨', '💧', '⭐', '🌟', '💧', '✨'];
-    lightElements.forEach((symbol, i) => {
-      setTimeout(() => {
-        const drop = document.createElement('div');
-        drop.className = 'magic-drop';
-        drop.textContent = symbol;
-        drop.style.left = (60 + (Math.random() * 20 - 10)) + 'px';
-        drop.style.animationDuration = (1.2 + Math.random() * 0.5) + 's';
-        stageContainer.appendChild(drop);
-        setTimeout(() => drop.remove(), 1800);
-      }, 400 + i * 120);
-    });
+    const starIcon = document.createElement('div');
+    starIcon.className = 'watering-can';
+    starIcon.textContent = '🌟';
+    stageContainer.appendChild(starIcon);
+    setTimeout(() => starIcon.remove(), 2000);
   }
 
   async function fetchCloudData() {
@@ -132,19 +117,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
         headers: { 'X-Master-Key': API_KEY }
       });
-      if (!res.ok) throw new Error('Network error');
-      const data = await res.json();
-      const record = data.record || {};
-
-      if (record.date !== todayStr) {
-        globalWordsArray = [];
-        saveCloudData([]);
-      } else {
-        globalWordsArray = Array.isArray(record.words) ? record.words : [];
+      if (res.ok) {
+        const data = await res.json();
+        const record = data.record || {};
+        if (record.date !== todayStr) {
+          globalWordsArray = [];
+          saveCloudData([]);
+        } else {
+          globalWordsArray = Array.isArray(record.words) ? record.words : [];
+        }
       }
-      renderUI();
     } catch (e) {
-      console.error(e);
+      console.log('Ошибка связи с сервером:', e);
+    } finally {
       renderUI();
     }
   }
@@ -160,19 +145,20 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ date: todayStr, words: newWords })
       });
     } catch (e) {
-      console.error(e);
+      console.log('Ошибка сохранения:', e);
     }
   }
 
   function renderUI() {
-    if (!wordsCloud) return;
-    wordsCloud.innerHTML = '';
-    globalWordsArray.forEach(text => {
-      const tag = document.createElement('div');
-      tag.className = 'word-tag';
-      tag.textContent = text;
-      wordsCloud.appendChild(tag);
-    });
+    if (wordsCloud) {
+      wordsCloud.innerHTML = '';
+      globalWordsArray.forEach(text => {
+        const tag = document.createElement('div');
+        tag.className = 'word-tag';
+        tag.textContent = text;
+        wordsCloud.appendChild(tag);
+      });
+    }
 
     if (subtitleEl) subtitleEl.textContent = activeStage.subtitle;
     if (input) input.placeholder = activeStage.placeholder;
@@ -181,49 +167,54 @@ document.addEventListener('DOMContentLoaded', () => {
     if (wordCountEl) wordCountEl.textContent = `${todayWordsCount} / ${DAILY_GOAL}`;
     if (treeImg) treeImg.src = activeStage.image;
 
-    if (currentStageIndex === stages.length - 1 && todayWordsCount >= DAILY_GOAL) {
-      if (statusMsg) statusMsg.textContent = '✨ Древо Сфирот полностью расцвело! Поздравляем с прохождением ритуала!';
-      if (finalVideoContainer && finalVideo) {
-        finalVideoContainer.style.display = 'block';
-        if (!finalVideo.src) {
-          finalVideo.src = FINAL_VIDEO_URL;
+    if (statusMsg) {
+      if (currentStageIndex === stages.length - 1 && todayWordsCount >= DAILY_GOAL) {
+        statusMsg.textContent = '✨ Древо Сфирот полностью расцвело! Поздравляем с прохождением ритуала!';
+        if (finalVideoContainer && finalVideo) {
+          finalVideoContainer.style.display = 'block';
+          if (!finalVideo.src) finalVideo.src = FINAL_VIDEO_URL;
         }
+      } else if (todayWordsCount >= DAILY_GOAL) {
+        statusMsg.textContent = `🎉 Задание дня выполнено (12 из 12 ${activeStage.unitName})! Новое дерево откроется завтра!`;
+      } else {
+        statusMsg.textContent = `Собрано: ${todayWordsCount} из ${DAILY_GOAL} ${activeStage.unitName}.`;
       }
-    } else if (todayWordsCount >= DAILY_GOAL) {
-      if (statusMsg) statusMsg.textContent = `🎉 Задание дня выполнено всей командой (12 из 12 ${activeStage.unitName})! Новое дерево откроется завтра!`;
-    } else {
-      if (statusMsg) statusMsg.textContent = `${activeStage.title}. Добавьте ещё ${DAILY_GOAL - todayWordsCount} ${activeStage.unitName} сегодня!`;
     }
   }
 
   async function addWord() {
+    if (!input) return;
     const text = input.value.trim();
     if (text === '') return;
 
     const isDuplicate = globalWordsArray.some(w => w.toLowerCase() === text.toLowerCase());
     if (isDuplicate) {
-      playFullMagicAnimation();
       alert(activeStage.dupError);
       input.value = '';
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'Отправка...';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Отправка...';
+    }
 
     playFullMagicAnimation();
 
     globalWordsArray.push(text);
-    await saveCloudData(globalWordsArray);
     renderUI();
-
     input.value = '';
-    btn.disabled = false;
-    btn.textContent = 'Отправить';
+
+    await saveCloudData(globalWordsArray);
+
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Отправить';
+    }
   }
 
   if (btn) btn.onclick = addWord;
 
   fetchCloudData();
-  setInterval(fetchCloudData, 5000);
+  setInterval(fetchCloudData, 6000);
 });
