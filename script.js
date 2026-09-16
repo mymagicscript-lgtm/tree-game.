@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => starIcon.remove(), 2000);
   }
 
-  async function fetchCloudData() {
+  async function getLatestWords() {
     try {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
         headers: { 'X-Master-Key': API_KEY }
@@ -120,18 +120,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) {
         const data = await res.json();
         const record = data.record || {};
-        if (record.date !== todayStr) {
-          globalWordsArray = [];
-          saveCloudData([]);
-        } else {
-          globalWordsArray = Array.isArray(record.words) ? record.words : [];
+        if (Array.isArray(record.words)) {
+          return record.words;
         }
       }
     } catch (e) {
-      console.log('Ошибка связи с сервером:', e);
-    } finally {
-      renderUI();
+      console.log('Ошибка сервера:', e);
     }
+    return globalWordsArray;
+  }
+
+  async function fetchCloudData() {
+    const latestWords = await getLatestWords();
+    globalWordsArray = latestWords;
+    renderUI();
   }
 
   async function saveCloudData(newWords) {
@@ -167,6 +169,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (wordCountEl) wordCountEl.textContent = `${todayWordsCount} / ${DAILY_GOAL}`;
     if (treeImg) treeImg.src = activeStage.image;
 
+    // Автоматическое исправление заголовка над счетчиком
+    const counterLabel = document.querySelector('.counter-label');
+    if (counterLabel) {
+      const capitalUnit = activeStage.unitName.charAt(0).toUpperCase() + activeStage.unitName.slice(1);
+      counterLabel.textContent = `${capitalUnit} собрано:`;
+    }
+
     if (statusMsg) {
       if (currentStageIndex === stages.length - 1 && todayWordsCount >= DAILY_GOAL) {
         statusMsg.textContent = '✨ Древо Сфирот полностью расцвело! Поздравляем с прохождением ритуала!';
@@ -187,21 +196,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const text = input.value.trim();
     if (text === '') return;
 
-    const isDuplicate = globalWordsArray.some(w => w.toLowerCase() === text.toLowerCase());
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Сохранение...';
+    }
+
+    const currentWords = await getLatestWords();
+
+    const isDuplicate = currentWords.some(w => w.toLowerCase() === text.toLowerCase());
     if (isDuplicate) {
       alert(activeStage.dupError);
       input.value = '';
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Отправить';
+      }
       return;
-    }
-
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Отправка...';
     }
 
     playFullMagicAnimation();
 
-    globalWordsArray.push(text);
+    currentWords.push(text);
+    globalWordsArray = currentWords;
     renderUI();
     input.value = '';
 
@@ -216,5 +232,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btn) btn.onclick = addWord;
 
   fetchCloudData();
-  setInterval(fetchCloudData, 6000);
+  setInterval(fetchCloudData, 8000);
 });
