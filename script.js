@@ -88,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const activeStage = stages[currentStageIndex];
+  let allDaysData = {}; 
   let globalWordsArray = [];
 
   function playFullMagicAnimation() {
@@ -112,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => starIcon.remove(), 2000);
   }
 
-  async function getLatestWords() {
+  async function getLatestData() {
     try {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
         headers: { 'X-Master-Key': API_KEY }
@@ -120,9 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) {
         const data = await res.json();
         const record = data.record || {};
-        if (Array.isArray(record.words)) {
-          return record.words;
+        allDaysData = record.days || {};
+        
+        // Если база была в старом формате, мигрируем слова
+        if (Array.isArray(record.words) && !record.days) {
+          allDaysData[record.date || todayStr] = record.words;
         }
+
+        return allDaysData[activeStage.date] || [];
       }
     } catch (e) {
       console.log('Ошибка сервера:', e);
@@ -131,20 +137,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function fetchCloudData() {
-    const latestWords = await getLatestWords();
+    const latestWords = await getLatestData();
     globalWordsArray = latestWords;
     renderUI();
   }
 
-  async function saveCloudData(newWords) {
+  async function saveCloudData(todayWords) {
     try {
+      allDaysData[activeStage.date] = todayWords;
       await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'X-Master-Key': API_KEY
         },
-        body: JSON.stringify({ date: todayStr, words: newWords })
+        body: JSON.stringify({ days: allDaysData })
       });
     } catch (e) {
       console.log('Ошибка сохранения:', e);
@@ -169,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (wordCountEl) wordCountEl.textContent = `${todayWordsCount} / ${DAILY_GOAL}`;
     if (treeImg) treeImg.src = activeStage.image;
 
-    // Автоматическое исправление заголовка над счетчиком
     const counterLabel = document.querySelector('.counter-label');
     if (counterLabel) {
       const capitalUnit = activeStage.unitName.charAt(0).toUpperCase() + activeStage.unitName.slice(1);
@@ -201,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.textContent = 'Сохранение...';
     }
 
-    const currentWords = await getLatestWords();
+    const currentWords = await getLatestData();
 
     const isDuplicate = currentWords.some(w => w.toLowerCase() === text.toLowerCase());
     if (isDuplicate) {
