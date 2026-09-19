@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
       date: '2026-09-18',
       image: '1789321336043.jpg',
       title: 'День 5 (18.09): Йесод 🔌 (Основа и Связь)',
-      subtitle: '«Собираю всё тепло недели в единый душевный привет перед выходными». Напишите 1 доброе пожелание на выходные.',
+      subtitle: '«Собираю всё тепло недели в единый душевный привет перед Шаббатом». Напишите 1 доброе пожелание на выходные.',
       placeholder: 'Напиши пожелание на выходные...',
       unitName: 'пожеланий',
       dupError: 'Такое пожелание уже есть! Пожелайте что-то ещё.'
@@ -91,6 +91,26 @@ document.addEventListener('DOMContentLoaded', () => {
   let allDaysData = {}; 
   let globalWordsArray = [];
 
+  const flowerTypes = ['🌸', '🌺', '🌼', '💮', '🏵️', '🪷', '🌺'];
+
+  // Генерація красивих позицій для КВІТІВ по всій кроні (для будь-якої кількості!)
+  function getFlowerPosition(index) {
+    // Радіус та кут для спірального розміщення
+    const goldenAngle = 137.5 * (Math.PI / 180);
+    const r = Math.sqrt(index + 1) * 7.5; // розширюється з кожною квіточкою
+    const theta = index * goldenAngle;
+
+    // Центр крони дерева в %
+    const centerX = 50; 
+    const centerY = 38; 
+
+    // Обмеження, щоб квіти не вилітали за межі крони
+    const posX = Math.max(18, Math.min(82, centerX + r * Math.cos(theta)));
+    const posY = Math.max(18, Math.min(58, centerY + r * Math.sin(theta)));
+
+    return { top: `${posY}%`, left: `${posX}%` };
+  }
+
   function playFullMagicAnimation() {
     if (!stageContainer) return;
 
@@ -105,12 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => star.remove(), 1800);
       }, i * 150);
     }
-
-    const starIcon = document.createElement('div');
-    starIcon.className = 'watering-can';
-    starIcon.textContent = '🌟';
-    stageContainer.appendChild(starIcon);
-    setTimeout(() => starIcon.remove(), 2000);
   }
 
   async function getLatestData() {
@@ -123,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const record = data.record || {};
         allDaysData = record.days || {};
         
-        // Если база была в старом формате, мигрируем слова
         if (Array.isArray(record.words) && !record.days) {
           allDaysData[record.date || todayStr] = record.words;
         }
@@ -176,6 +189,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (wordCountEl) wordCountEl.textContent = `${todayWordsCount} / ${DAILY_GOAL}`;
     if (treeImg) treeImg.src = activeStage.image;
 
+    // Малюємо квіти, які ЛИШАЮТЬСЯ (хоч 10, хоч 25, хоч 50 штук)
+    if (stageContainer) {
+      const oldFlowers = stageContainer.querySelectorAll('.static-flower');
+      oldFlowers.forEach(f => f.remove());
+
+      for (let i = 0; i < todayWordsCount; i++) {
+        const pos = getFlowerPosition(i);
+        const flowerEl = document.createElement('div');
+        flowerEl.className = 'static-flower';
+        flowerEl.textContent = flowerTypes[i % flowerTypes.length];
+        flowerEl.style.top = pos.top;
+        flowerEl.style.left = pos.left;
+        stageContainer.appendChild(flowerEl);
+      }
+    }
+
     const counterLabel = document.querySelector('.counter-label');
     if (counterLabel) {
       const capitalUnit = activeStage.unitName.charAt(0).toUpperCase() + activeStage.unitName.slice(1);
@@ -190,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (!finalVideo.src) finalVideo.src = FINAL_VIDEO_URL;
         }
       } else if (todayWordsCount >= DAILY_GOAL) {
-        statusMsg.textContent = `🎉 Задание дня выполнено (12 из 12 ${activeStage.unitName})! Новое дерево откроется завтра!`;
+        statusMsg.textContent = `🎉 Цель дня выполнена (${todayWordsCount} ${activeStage.unitName})! Древо расцветает всё сильнее!`;
       } else {
         statusMsg.textContent = `Собрано: ${todayWordsCount} из ${DAILY_GOAL} ${activeStage.unitName}.`;
       }
